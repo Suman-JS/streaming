@@ -1,4 +1,12 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "cSpell.words": ["hookform", "lucide", "Mern"]
+  "cSpell.words": [
+    "arrowleft",
+    "arrowright",
+    "enterpictureinpicture",
+    "hookform",
+    "leavepictureinpicture",
+    "lucide",
+    "Mern"
+  ]
 }

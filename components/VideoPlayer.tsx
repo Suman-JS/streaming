@@ -1,243 +1,373 @@
-// "use client";
-
-// import React, {
-//   useCallback,
-//   useEffect,
-//   useMemo,
-//   useRef,
-//   useState,
-//   ChangeEvent,
-// } from "react";
-// import PlayPauseButton from "./PlayPauseButton";
-// import VolumeControl from "./VolumeControl";
-// import TimeDisplay from "./TimeDisplay";
-// import FullScreenButton from "./FullScreenButton";
-// import axios from "axios";
-
-// const VideoPlayer = (props: { videoSrc: string; thumbnailSrc?: string }) => {
-//   const [isPaused, setIsPaused] = useState(false);
-//   const [isFullScreen, setIsFullScreen] = useState(false);
-//   const [duration, setDuration] = useState(0);
-//   const [volumeLevel, setVolumeLevel] = useState<"high" | "low" | "muted">(
-//     "high"
-//   );
-//   const [currentTime, setCurrentTime] = useState(0);
-//   const [videoUrl, setVideoUrl] = useState("");
-//   const videoRef = useRef<HTMLVideoElement>(null);
-
-//   const formatTime = useCallback((time: number) => {
-//     const minute = Math.floor(time / 60);
-//     const seconds = Math.floor(time % 60);
-//     return `${minute}:${seconds.toString().padStart(2, "0")}`;
-//   }, []);
-
-//   const formattedCurrentTime = useMemo(
-//     () => formatTime(currentTime),
-//     [formatTime, currentTime]
-//   );
-
-//   const formattedDuration = useMemo(
-//     () => formatTime(duration),
-//     [formatTime, duration]
-//   );
-
-//   const volumeValue = useMemo(() => videoRef?.current?.volume ?? 1, [videoRef]);
-
-//   const seekBarProps = useMemo(
-//     () => ({
-//       max: duration - 1,
-//       value: currentTime,
-//     }),
-//     [currentTime, duration]
-//   );
-
-//   useEffect(() => {
-//     const video = videoRef.current;
-//     if (!video) return;
-
-//     const handlePlay = () => setIsPaused(false);
-//     const handlePause = () => setIsPaused(true);
-//     const handleTimeUpdate = () => setCurrentTime(video.currentTime);
-//     const handleLoadedMetaData = () => setDuration(video.duration);
-//     const handleVolumeChange = () => {
-//       setVolumeLevel(
-//         video.muted ? "muted" : video.volume >= 0.5 ? "high" : "low"
-//       );
-//     };
-//     video.addEventListener("play", handlePlay);
-//     video.addEventListener("pause", handlePause);
-//     video.addEventListener("timeupdate", handleTimeUpdate);
-//     video.addEventListener("loadedmetadata", handleLoadedMetaData);
-//     video.addEventListener("volumechange", handleVolumeChange);
-
-//     const getVideoUrl = async (key: string) => {
-//       try {
-//         const res = await axios.get(`/api/get-video/${key}`);
-//         setVideoUrl(res?.data?.hlsUrl);
-//         console.log(res);
-//       } catch (error) {}
-//     };
-//     getVideoUrl("vid");
-
-//     return () => {
-//       video.removeEventListener("play", handlePlay);
-//       video.removeEventListener("pause", handlePause);
-//       video.removeEventListener("timeupdate", handleTimeUpdate);
-//       video.removeEventListener("loadedmetadata", handleLoadedMetaData);
-//       video.removeEventListener("volumechange", handleVolumeChange);
-//     };
-//   }, []);
-
-//   const togglePlay = useCallback(() => {
-//     const video = videoRef.current;
-//     if (video) {
-//       video.paused ? video.play() : video.pause();
-//     }
-//   }, []);
-
-//   const toggleMute = useCallback(() => {
-//     const video = videoRef.current;
-//     if (video) {
-//       video.muted = !video.muted;
-//     }
-//   }, []);
-
-//   const toggleFullScreen = useCallback(() => {
-//     if (!document.fullscreenElement) {
-//       videoRef.current?.requestFullscreen();
-//     } else {
-//       document.exitFullscreen();
-//     }
-//     setIsFullScreen((prev) => !prev);
-//   }, []);
-
-//   const handleSeek = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-//     const video = videoRef.current;
-
-//     if (video) {
-//       const time = parseFloat(e.target.value);
-//       video.currentTime = time;
-//       setCurrentTime(time);
-//     }
-//   }, []);
-
-//   const handleVolumeChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-//     const video = videoRef.current;
-//     if (video) {
-//       const volume = parseFloat(e.target.value);
-//       video.volume = volume;
-//       video.muted = volume === 0;
-//     }
-//   }, []);
-
-//   const VolumeIcon = useCallback(() => {
-//     switch (volumeLevel) {
-//       case "muted":
-//         return (
-//           <svg
-//             xmlns="http://www.w3.org/2000/svg"
-//             height="24px"
-//             viewBox="0 -960 960 960"
-//             width="24px"
-//             fill="#e8eaed"
-//           >
-//             <path d="M792-56 671-177q-25 16-53 27.5T560-131v-82q14-5 27.5-10t25.5-12L480-368v208L280-360H120v-240h128L56-792l56-56 736 736-56 56Zm-8-232-58-58q17-31 25.5-65t8.5-70q0-94-55-168T560-749v-82q124 28 202 125.5T840-481q0 53-14.5 102T784-288ZM650-422l-90-90v-130q47 22 73.5 66t26.5 96q0 15-2.5 29.5T650-422ZM480-592 376-696l104-104v208Zm-80 238v-94l-72-72H200v80h114l86 86Zm-36-130Z" />
-//           </svg>
-//         );
-//         break;
-//       case "low":
-//         return (
-//           <svg
-//             xmlns="http://www.w3.org/2000/svg"
-//             height="24px"
-//             viewBox="0 -960 960 960"
-//             width="24px"
-//             fill="#e8eaed"
-//           >
-//             <path d="M200-360v-240h160l200-200v640L360-360H200Zm440 40v-322q45 21 72.5 65t27.5 97q0 53-27.5 96T640-320ZM480-606l-86 86H280v80h114l86 86v-252ZM380-480Z" />
-//           </svg>
-//         );
-//         break;
-//       default:
-//         return (
-//           <svg
-//             xmlns="http://www.w3.org/2000/svg"
-//             height="24px"
-//             viewBox="0 -960 960 960"
-//             width="24px"
-//             fill="#e8eaed"
-//           >
-//             <path d="M560-131v-82q90-26 145-100t55-168q0-94-55-168T560-749v-82q124 28 202 125.5T840-481q0 127-78 224.5T560-131ZM120-360v-240h160l200-200v640L280-360H120Zm440 40v-322q47 22 73.5 66t26.5 96q0 51-26.5 94.5T560-320ZM400-606l-86 86H200v80h114l86 86v-252ZM300-480Z" />
-//           </svg>
-//         );
-//         break;
-//     }
-//   }, [volumeLevel]);
-
-//   return (
-//     <>
-//       <div className="relative w-full max-w-4xl mx-auto bg-black">
-//         <video
-//           className="w-full"
-//           preload="none"
-//           ref={videoRef}
-//           poster={props.thumbnailSrc}
-//           autoPlay
-//           controls
-//         >
-//           {/* <source src={videoUrl} type="application/x-mpegURL" /> */}
-//           <source src="/videos/vid.m3u8" type="application/x-mpegURL"></source>
-//           Your browser does not support the video tag.
-//         </video>
-//         {/* <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-//           <input
-//             type="range"
-//             min={0}
-//             {...seekBarProps}
-//             onChange={handleSeek}
-//             className="w-full mt-2"
-//           />
-//           <TimeDisplay
-//             currentTime={formattedCurrentTime}
-//             duration={formattedDuration}
-//           />
-//           <div className="flex">
-//             <PlayPauseButton isPaused={isPaused} onClick={togglePlay} />
-//             <VolumeControl
-//               volume={volumeValue}
-//               onVolumeChange={handleVolumeChange}
-//               onMuteToggle={toggleMute}
-//               VolumeIcon={VolumeIcon}
-//             />
-//             <FullScreenButton
-//               isFullScreen={isFullScreen}
-//               onClick={toggleFullScreen}
-//             />
-//           </div>
-//         </div> */}
-//       </div>
-//     </>
-//   );
-// };
-
-// export default VideoPlayer;
-
 "use client";
 
-import React from "react";
+import "@/styles/videoPlayer.css";
+import { cn, formatDuration } from "@/lib/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const VideoPlayer = (props: { videoId: string }) => {
+  const [isPaused, setIsPaused] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [currentTime, setCurrentTime] = useState("");
+  const [duration, setDuration] = useState("");
+  const [isFraction, setIsFraction] = useState(false);
+  const [volumeLevel, setVolumeLevel] = useState<"high" | "low" | "muted">(
+    "high"
+  );
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const timelineContainerRef = useRef<HTMLDivElement>(null);
+
+  const handlePlayPause = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    }
+  }, []);
+
+  const handleTheaterMode = useCallback(() => {
+    setIsTheaterMode((prev) => !prev);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      videoContainerRef.current?.requestFullscreen();
+      setIsFullScreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullScreen(false);
+    }
+  }, []);
+
+  const toggleMiniPlayer = useCallback(() => {
+    const video = videoRef.current;
+    if (document.pictureInPictureElement) {
+      document.exitPictureInPicture();
+    } else if (document.pictureInPictureEnabled) {
+      video?.requestPictureInPicture();
+    }
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = !video.muted;
+      setVolumeLevel(
+        video.muted ? "muted" : video.volume >= 0.5 ? "high" : "low"
+      );
+    }
+  }, []);
+
+  const changePlaybackSpeed = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      let newPlaybackRate = video.playbackRate + 0.25;
+      if (newPlaybackRate > 2) newPlaybackRate = 0.25;
+      video.playbackRate = newPlaybackRate;
+      setPlaybackSpeed(newPlaybackRate);
+      setIsFraction(newPlaybackRate % 1 !== 0);
+    }
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const videoContainer = videoContainerRef.current;
+    const timeline = timelineContainerRef.current;
+
+    if (!video || !videoContainer || !timeline) return;
+
+    let isScrubbing = false;
+    let wasPaused = false;
+
+    const handleKeydown = (e: KeyboardEvent) => {
+      const tagName = document.activeElement?.tagName.toLowerCase();
+      if (tagName === "input") return;
+
+      const keyHandlers: Record<string, () => void> = {
+        " ": () => tagName !== "button" && handlePlayPause(),
+        k: handlePlayPause,
+        t: handleTheaterMode,
+        f: toggleFullscreen,
+        i: toggleMiniPlayer,
+        m: toggleMute,
+        arrowleft: () => {
+          video.currentTime -= 5;
+        },
+        j: () => {
+          video.currentTime -= 5;
+        },
+        arrowright: () => {
+          video.currentTime += 5;
+        },
+        l: () => {
+          video.currentTime += 5;
+        },
+      };
+
+      const handler = keyHandlers[e.key.toLowerCase()];
+      if (handler) handler();
+    };
+
+    const updateTimeline = (e: MouseEvent) => {
+      const rect = timeline.getBoundingClientRect();
+      const percent =
+        Math.min(Math.max(0, e.x - rect.x), rect.width) / rect.width;
+      timeline.style.setProperty("--preview-position", percent.toString());
+      if (isScrubbing) {
+        e.preventDefault();
+        timeline.style.setProperty("--progress-position", percent.toString());
+      }
+    };
+
+    const toggleScrubbing = (e: MouseEvent) => {
+      const rect = timeline.getBoundingClientRect();
+      const percent =
+        Math.min(Math.max(0, e.x - rect.x), rect.width) / rect.width;
+      isScrubbing = (e.buttons & 1) === 1;
+      videoContainer.classList.toggle("scrubbing", isScrubbing);
+      if (isScrubbing) {
+        wasPaused = video.paused;
+        video.pause();
+      } else {
+        video.currentTime = percent * video.duration;
+        if (!wasPaused) video.play();
+      }
+      updateTimeline(e);
+    };
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(formatDuration(video.currentTime));
+      const percent = video.currentTime / video.duration;
+      timeline.style.setProperty("--progress-position", percent.toString());
+    };
+
+    const handleVolumeChange = () => {
+      const volume = video.volume;
+      const isMuted = video.muted || volume === 0;
+      setVolumeLevel(isMuted ? "muted" : volume >= 0.5 ? "high" : "low");
+      videoContainer.dataset.volumeLevel = isMuted
+        ? "muted"
+        : volume >= 0.5
+        ? "high"
+        : "low";
+    };
+
+    video.addEventListener("click", handlePlayPause);
+    video.addEventListener("play", () => setIsPaused(false));
+    video.addEventListener("pause", () => setIsPaused(true));
+    video.addEventListener("loadeddata", () =>
+      setDuration(formatDuration(video.duration))
+    );
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("volumechange", handleVolumeChange);
+    video.addEventListener("enterpictureinpicture", () =>
+      videoContainer.classList.add("mini-player")
+    );
+    video.addEventListener("leavepictureinpicture", () =>
+      videoContainer.classList.remove("mini-player")
+    );
+
+    timeline.addEventListener("mousemove", updateTimeline);
+    timeline.addEventListener("mousedown", toggleScrubbing);
+    document.addEventListener(
+      "mouseup",
+      (e) => isScrubbing && toggleScrubbing(e)
+    );
+    document.addEventListener(
+      "mousemove",
+      (e) => isScrubbing && updateTimeline(e)
+    );
+    document.addEventListener("keydown", handleKeydown);
+
+    return () => {
+      video.removeEventListener("click", handlePlayPause);
+      video.removeEventListener("play", () => setIsPaused(false));
+      video.removeEventListener("pause", () => setIsPaused(true));
+      video.removeEventListener("loadeddata", () =>
+        setDuration(formatDuration(video.duration))
+      );
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("volumechange", handleVolumeChange);
+      video.removeEventListener("enterpictureinpicture", () =>
+        videoContainer.classList.add("mini-player")
+      );
+      video.removeEventListener("leavepictureinpicture", () =>
+        videoContainer.classList.remove("mini-player")
+      );
+
+      timeline.removeEventListener("mousemove", updateTimeline);
+      timeline.removeEventListener("mousedown", toggleScrubbing);
+      document.removeEventListener(
+        "mouseup",
+        (e) => isScrubbing && toggleScrubbing(e)
+      );
+      document.removeEventListener(
+        "mousemove",
+        (e) => isScrubbing && updateTimeline(e)
+      );
+      document.removeEventListener("keydown", handleKeydown);
+    };
+  }, [
+    handlePlayPause,
+    handleTheaterMode,
+    toggleFullscreen,
+    toggleMiniPlayer,
+    toggleMute,
+  ]);
+
   return (
-    <div>
+    <div
+      ref={videoContainerRef}
+      className={cn(
+        "w-[90%] max-w-[1000px] h-full max-h-[570px] flex justify-center mx-auto relative bg-black group",
+        isTheaterMode && "max-w-[initial] w-full max-h-[90svh]",
+        isFullScreen && "max-w-[initial] w-full max-h-svh"
+      )}
+    >
+      <div
+        className={cn(
+          "absolute bottom-0 left-0 right-0 text-white z-[100] opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100 before:absolute before:bottom-0 before:bg-gradient-to-t from-black/75 to-transparent before:w-full before:aspect-[6/1] before:-z-[1] before:pointer-events-none",
+          isPaused && "opacity-100"
+        )}
+      >
+        <div className="timeline-container" ref={timelineContainerRef}>
+          <div className="timeline">
+            <div className="thumb"></div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 p-1 items-center">
+          <button onClick={handlePlayPause} className="videoBtn">
+            {isPaused ? (
+              <svg viewBox="0 0 24 24">
+                <path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24">
+                <path fill="currentColor" d="M14,19H18V5H14M6,19H10V5H6V19Z" />
+              </svg>
+            )}
+          </button>
+
+          <div className="flex items-center gap-1 group/slider">
+            <button onClick={toggleMute} className="videoBtn">
+              {volumeLevel === "high" && (
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"
+                  />
+                </svg>
+              )}
+              {volumeLevel === "low" && (
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M5,9V15H9L14,20V4L9,9M18.5,12C18.5,10.23 17.5,8.71 16,7.97V16C17.5,15.29 18.5,13.76 18.5,12Z"
+                  />
+                </svg>
+              )}
+              {volumeLevel === "muted" && (
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z"
+                  />
+                </svg>
+              )}
+            </button>
+            <input
+              type="range"
+              className="w-0 transition-all scale-x-0 group-hover/slider:scale-x-100 group-hover/slider:w-[100px] group-focus-within/slider:scale-x-100 group-focus-within/slider:w-[100px] origin-left"
+              min={0}
+              max={1}
+              step="any"
+              value={videoRef.current?.volume || 0}
+              onChange={(e) => {
+                if (videoRef.current) {
+                  videoRef.current.volume = parseFloat(e.target.value);
+                  videoRef.current.muted = videoRef.current.volume === 0;
+                }
+              }}
+            />
+          </div>
+
+          <div className="flex items-center gap-1 flex-grow">
+            <div>{currentTime}</div>/<div>{duration}</div>
+          </div>
+
+          <button
+            onClick={changePlaybackSpeed}
+            className={cn("videoBtn", isFraction && "w-12")}
+          >
+            {playbackSpeed}x
+          </button>
+
+          <button onClick={toggleMiniPlayer} className="videoBtn">
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zm-10-7h9v6h-9z"
+              />
+            </svg>
+          </button>
+
+          <button onClick={handleTheaterMode} className="videoBtn">
+            {isTheaterMode ? (
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M19 7H5c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm0 8H5V9h14v6z"
+                />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M19 6H5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H5V8h14v8z"
+                />
+              </svg>
+            )}
+          </button>
+
+          <button onClick={toggleFullscreen} className="videoBtn">
+            {isFullScreen ? (
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"
+                />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
       <video
-        controls
-        width="600"
-        preload="auto"
-        src={`/api/video/${props.videoId}`}
-        style={{ maxWidth: "100%" }}
-      />
+        ref={videoRef}
+        playsInline
+        autoPlay
+        muted
+        preload="none"
+        aria-label="Video player"
+        className="w-full"
+      >
+        <source src={`/api/video/${props.videoId}`} />
+        Your browser does not support the video tag.
+      </video>
     </div>
   );
 };
-
 export default VideoPlayer;

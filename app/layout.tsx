@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "@/styles/globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import Nav from "@/components/Nav";
 
@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} relative`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
