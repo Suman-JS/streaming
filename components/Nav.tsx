@@ -12,7 +12,7 @@ const Nav = async () => {
   const { userName } = await auth();
 
   return (
-    <nav className="bg-slate-400/70 sticky top-0 left-0 w-full p-2 dark:bg-slate-400/20">
+    <nav className="bg-slate-400/70 fixed top-0 left-0 w-full p-2 dark:bg-slate-400/20">
       <div className="flex justify-between">
         <Image
           src={logo}
